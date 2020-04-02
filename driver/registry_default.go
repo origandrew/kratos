@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ory/kratos/continuity"
 	"github.com/ory/kratos/schema"
 	"github.com/ory/kratos/selfservice/flow/verify"
 	"github.com/ory/kratos/x"
@@ -65,6 +66,8 @@ type RegistryDefault struct {
 	identityHandler   *identity.Handler
 	identityValidator *identity.Validator
 	identityManager   *identity.Manager
+
+	continuityManager continuity.Manager
 
 	schemaHandler *schema.Handler
 
@@ -393,6 +396,17 @@ func (m *RegistryDefault) Courier() *courier.Courier {
 		m.courier = courier.NewSMTP(m, m.c)
 	}
 	return m.courier
+}
+
+func (m *RegistryDefault) ContinuityManager() continuity.Manager {
+	if m.continuityManager == nil {
+		m.continuityManager =continuity.NewManagerCookie(m)
+	}
+	return m.continuityManager
+}
+
+func (m *RegistryDefault) ContinuityPersister() continuity.Persister {
+	return m.persister
 }
 
 func (m *RegistryDefault) IdentityPool() identity.Pool {

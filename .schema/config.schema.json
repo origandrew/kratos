@@ -121,6 +121,17 @@
         "schema_url"
       ]
     },
+    "selfServiceAfterProfileHooks": {
+      "type": "array",
+      "items": {
+        "anyOf": [
+          {
+            "$ref": "#/definitions/selfServiceRedirectHook"
+          }
+        ]
+      },
+      "uniqueItems": true
+    },
     "selfServiceAfterLoginHooks": {
       "type": "array",
       "items": {
@@ -154,6 +165,18 @@
         ]
       },
       "uniqueItems": true
+    },
+    "selfServiceAfterProfile": {
+      "type": "object",
+      "properties": {
+        "password": {
+          "$ref": "#/definitions/selfServiceAfterProfileHooks"
+        },
+        "profile": {
+          "$ref": "#/definitions/selfServiceAfterProfileHooks"
+        }
+      },
+      "additionalItems": false
     },
     "selfServiceAfterLogin": {
       "type": "object",
@@ -255,6 +278,7 @@
         },
         "profile": {
           "type": "object",
+          "additionalItems": false,
           "properties": {
             "request_lifespan": {
               "type": "string",
@@ -265,6 +289,9 @@
               "type": "string",
               "pattern": "^[0-9]+(ns|us|ms|s|m|h)$",
               "default": "1h"
+            },
+            "after": {
+              "$ref": "#/definitions/selfServiceAfterProfile"
             }
           }
         },

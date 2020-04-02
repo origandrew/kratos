@@ -187,7 +187,7 @@ func TestStrategyTraits(t *testing.T) {
 
 			body, err := ioutil.ReadAll(res.Body)
 			require.NoError(t, err)
-			assert.Contains(t, gjson.Get(string(body), "0.reason").String(), "A field was modified that updates one or more credentials-related settings", "%s", body)
+			assert.Contains(t, gjson.Get(string(body), "0.reason").String(), "session is too old and thus not allowed to update these fields. Please re-authenticate", "%s", body)
 		})
 
 		t.Run("description=should retry with invalid payloads multiple times before succeeding", func(t *testing.T) {

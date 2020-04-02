@@ -4,6 +4,9 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/ory/x/errorsx"
+	"github.com/pkg/errors"
+
 	"github.com/ory/kratos/driver/configuration"
 	"github.com/ory/kratos/identity"
 	"github.com/ory/kratos/session"
@@ -64,6 +67,9 @@ func (e *HookExecutor) PostProfileManagementHook(w http.ResponseWriter, r *http.
 	}
 
 	if err := e.d.IdentityManager().Update(r.Context(), i, options...); err != nil {
+		if errorsx.Cause(err) == identity.ErrProtectedFieldModified {
+			return errors.WithStack(ErrRequestNeedsReAuthentication)
+		}
 		return err
 	}
 

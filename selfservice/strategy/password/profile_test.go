@@ -72,7 +72,7 @@ func TestProfile(t *testing.T) {
 		body, err := ioutil.ReadAll(res.Body)
 		require.NoError(t, err)
 
-		assert.Contains(t, gjson.GetBytes(body, "0.reason").String(), "session is too old and thus not allowed to update the password")
+		assert.Contains(t, gjson.GetBytes(body, "0.reason").String(), "session is too old and thus not allowed to update these fields. Please re-authenticate")
 		assert.Equal(t, int64(http.StatusForbidden), gjson.GetBytes(body, "0.code").Int())
 	})
 
@@ -85,7 +85,8 @@ func TestProfile(t *testing.T) {
 		actual, _ := testhelpers.ProfileSubmitForm(t, form, primaryUser, values)
 
 		assert.Equal(t, *form.Action, gjson.Get(actual, "methods.password.config.action").String(), "%s", actual)
-		assert.Empty(t, gjson.Get(actual, "methods.password.fields.#(name==password).value").String(), "%s", actual)
+		assert.Empty(t, gjson.Get(actual, "methods.password.config.fields.#(name==password).value").String(), "%s", actual)
+		assert.NotEmpty(t, gjson.Get(actual, "methods.password.config.fields.#(name==csrf_token).value").String(), "%s", actual)
 		assert.Contains(t, gjson.Get(actual, "methods.password.config.fields.#(name==password).errors.0.message").String(), "the password does not fulfill the password policy because", "%s", actual)
 	})
 

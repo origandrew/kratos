@@ -2,9 +2,12 @@ package profile
 
 import (
 	"context"
+	"crypto/sha256"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/url"
+	"time"
 
 	"github.com/julienschmidt/httprouter"
 	"github.com/pkg/errors"
@@ -16,6 +19,7 @@ import (
 	"github.com/ory/x/errorsx"
 	"github.com/ory/x/urlx"
 
+	"github.com/ory/kratos/continuity"
 	"github.com/ory/kratos/driver/configuration"
 	"github.com/ory/kratos/identity"
 	"github.com/ory/kratos/schema"
@@ -30,6 +34,8 @@ const (
 	PublicProfileManagementUpdatePath = "/self-service/browser/flows/profile/strategies/profile"
 )
 
+var strategyProfileContinuityName = fmt.Sprintf("%x", sha256.Sum256([]byte(PublicProfileManagementUpdatePath)))
+
 var _ Strategy = new(StrategyTraits)
 
 type (
@@ -38,6 +44,8 @@ type (
 		x.CSRFTokenGeneratorProvider
 		x.WriterProvider
 		x.LoggingProvider
+
+		continuity.ManagementProvider
 
 		session.HandlerProvider
 		session.ManagementProvider
@@ -88,7 +96,9 @@ func (s *StrategyTraits) PopulateProfileManagementMethod(r *http.Request, ss *se
 
 	// use a schema compiler that disables identifiers
 	schemaCompiler := jsonschema.NewCompiler()
-	registerNewDisableIdentifiersExtension(schemaCompiler)
+	if ss.AuthenticatedAt.Add(s.c.SelfServicePrivilegedSessionMaxAge()).Before(time.Now()) {
+		registerNewDisableIdentifiersExtension(schemaCompiler)
+	}
 
 	f, err := form.NewHTMLFormFromJSONSchema(urlx.CopyWithQuery(
 		urlx.AppendPaths(s.c.SelfPublicURL(), PublicProfileManagementUpdatePath),
@@ -165,7 +175,33 @@ func (s *StrategyTraits) completeProfileManagementFlow(w http.ResponseWriter, r 
 		return
 	}
 
-	ar, err := s.d.ProfileRequestPersister().GetProfileRequest(r.Context(), x.ParseUUID(rid))
+	p.RequestID = rid
+	if err := s.d.ContinuityManager().Pause(
+		r.Context(),w, r,
+		strategyProfileContinuityName,
+		continuity.WithPayload(&p),
+		continuity.WithIdentity(ss.Identity),
+		continuity.WithLifespan(time.Minute*15),
+	); err != nil {
+		s.handleProfileManagementError(w, r, nil, ss, json.RawMessage(ss.Identity.Traits), err)
+		return
+	}
+
+	s.CompleteProfileManagementFlow(w, r, ss)
+}
+
+func (s *StrategyTraits) CompleteProfileManagementFlow(w http.ResponseWriter, r *http.Request, ss *session.Session) {
+	var p completeSelfServiceBrowserProfileManagementFlowPayload
+	if _, err := s.d.ContinuityManager().Continue(r.Context(), r,
+		strategyProfileContinuityName,
+		continuity.WithIdentity(ss.Identity),
+		continuity.WithPayload(&p),
+	); err != nil {
+		s.handleProfileManagementError(w, r, nil, ss, json.RawMessage(ss.Identity.Traits), err)
+		return
+	}
+
+	ar, err := s.d.ProfileRequestPersister().GetProfileRequest(r.Context(), x.ParseUUID(p.RequestID))
 	if err != nil {
 		s.handleProfileManagementError(w, r, nil, ss, json.RawMessage(ss.Identity.Traits), err)
 		return
@@ -237,6 +273,11 @@ type completeSelfServiceBrowserProfileManagementFlowPayload struct {
 	// format: binary
 	// required: true
 	Traits json.RawMessage `json:"traits"`
+
+	// RequestID is request ID.
+	//
+	// in: query
+	RequestID string `json:"request_id"`
 }
 
 func (s *StrategyTraits) hydrateForm(r *http.Request, ar *Request, ss *session.Session, traits json.RawMessage) error {

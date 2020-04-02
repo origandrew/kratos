@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/ory/x/sqlxx"
 	"github.com/pkg/errors"
 
 	"github.com/ory/herodot"
@@ -17,9 +18,10 @@ import (
 
 var (
 	ErrRequestExpired = herodot.ErrBadRequest.
-				WithError("profile management request expired").
-				WithReasonf(`The profile management request has expired. Please restart the flow.`)
-	ErrHookAbortRequest = errors.New("abort hook")
+		WithError("profile management request expired").
+		WithReasonf(`The profile management request has expired. Please restart the flow.`)
+	ErrHookAbortRequest             = errors.New("abort hook")
+	ErrRequestNeedsReAuthentication = herodot.ErrForbidden.WithReasonf("The login session is too old and thus not allowed to update these fields. Please re-authenticate.")
 )
 
 type (
@@ -45,6 +47,20 @@ func NewErrorHandler(d errorHandlerDependencies, c configuration.Provider) *Erro
 		c: c,
 	}
 }
+//
+// func (s *ErrorHandler) reauthenticate(
+// 	w http.ResponseWriter,
+// 	r *http.Request,
+// 	rr *Request,
+// 	err error,
+// 	method string) {
+//
+// 	if err := s.d.ProfileRequestPersister().UpdateProfileRequest(r.Context(), rr); err != nil {
+// 		s.d.SelfServiceErrorManager().Forward(r.Context(), w, r, err)
+// 		return
+// 	}
+//
+// }
 
 func (s *ErrorHandler) HandleProfileManagementError(
 	w http.ResponseWriter,
@@ -70,6 +86,12 @@ func (s *ErrorHandler) HandleProfileManagementError(
 		s.d.SelfServiceErrorManager().Forward(r.Context(), w, r, errors.WithStack(herodot.ErrInternalServerError.WithReasonf("Expected profile management method %s to exist.", method)))
 		return
 	}
+
+	rr.Active = sqlxx.NullString(method)
+	// if errorsx.Cause(err) == ErrRequestNeedsReAuthentication {
+	// 	s.reauthenticate(w, r, rr, err, method)
+	// 	return
+	// }
 
 	if err := rr.Methods[method].Config.ParseError(err); err != nil {
 		s.d.SelfServiceErrorManager().Forward(r.Context(), w, r, err)

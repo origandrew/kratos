@@ -51,6 +51,7 @@ func GetProfileManagementRequest(t *testing.T, primaryUser *http.Client, ts *htt
 
 	res, err := primaryUser.Get(ts.URL + profile.PublicProfileManagementPath)
 	require.NoError(t, err)
+	require.NoError(t, res.Body.Close())
 
 	rs, err := publicClient.Common.GetSelfServiceBrowserProfileManagementRequest(
 		common.NewGetSelfServiceBrowserProfileManagementRequestParams().WithHTTPClient(primaryUser).

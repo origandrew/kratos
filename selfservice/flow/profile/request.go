@@ -52,9 +52,9 @@ type Request struct {
 	// required: true
 	RequestURL string `json:"request_url" db:"request_url"`
 
-	// FormActive, if set, contains the registration method that is being used. It is initially
+	// Active, if set, contains the registration method that is being used. It is initially
 	// not set.
-	FormActive sqlxx.NullString `json:"active,omitempty" db:"active_method"`
+	Active sqlxx.NullString `json:"active,omitempty" db:"active_method"`
 
 	// Methods contains context for all enabled registration methods. If a registration request has been
 	// processed, but for example the password is incorrect, this will contain error messages.
@@ -75,7 +75,7 @@ type Request struct {
 	// when a request with invalid (e.g. "please use a valid phone number") data was sent.
 	//
 	// required: true
-	UpdateSuccessful bool `json:"update_successful,omitempty" faker:"-" db:"update_successful"`
+	UpdateSuccessful bool `json:"update_successful" faker:"-" db:"update_successful"`
 
 	// IdentityID is a helper struct field for gobuffalo.pop.
 	IdentityID uuid.UUID `json:"-" faker:"-" db:"identity_id"`

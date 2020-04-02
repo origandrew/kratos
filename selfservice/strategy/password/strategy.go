@@ -3,6 +3,7 @@ package password
 import (
 	"gopkg.in/go-playground/validator.v9"
 
+	"github.com/ory/kratos/continuity"
 	"github.com/ory/kratos/driver/configuration"
 	"github.com/ory/kratos/identity"
 	"github.com/ory/kratos/selfservice/errorx"
@@ -20,6 +21,8 @@ type registrationStrategyDependencies interface {
 	x.LoggingProvider
 	x.WriterProvider
 	x.CSRFTokenGeneratorProvider
+
+	continuity.ManagementProvider
 
 	errorx.ManagementProvider
 	ValidationProvider

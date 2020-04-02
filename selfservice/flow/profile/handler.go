@@ -163,6 +163,10 @@ func (h *Handler) adminFetchUpdateProfileRequest(w http.ResponseWriter, r *http.
 	}
 }
 
+// func (h *Handler) resumeAbortedRequest(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+//
+// }
+
 func (h *Handler) wrapErrorForbidden(err error, shouldWrap bool) error {
 	if shouldWrap {
 		return herodot.ErrForbidden.WithReasonf("Access privileges are missing, invalid, or not sufficient to access this endpoint.").WithTrace(err).WithDebugf("%s", err)

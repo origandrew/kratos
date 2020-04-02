@@ -3,6 +3,20 @@ selfservice:
     password:
       enabled: true
 
+  profile:
+    privileged_session_max_age: 15h
+    after:
+      profile:
+        -
+          job: redirect
+          config:
+            default_redirect_url: http://127.0.0.1:4455/dashboard
+      password:
+        -
+          job: redirect
+          config:
+            default_redirect_url: http://127.0.0.1:4455/dashboard
+
   verify:
     return_to: http://127.0.0.1:4455/
 

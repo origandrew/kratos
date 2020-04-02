@@ -9,6 +9,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
+	"github.com/ory/kratos/continuity"
 	"github.com/ory/kratos/courier"
 	"github.com/ory/kratos/schema"
 	"github.com/ory/kratos/selfservice/flow/verify"
@@ -54,6 +55,9 @@ type Registry interface {
 	x.CSRFProvider
 	x.WriterProvider
 	x.LoggingProvider
+
+	continuity.ManagementProvider
+	continuity.PersistenceProvider
 
 	courier.Provider
 

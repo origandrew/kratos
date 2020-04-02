@@ -6,6 +6,7 @@ import (
 
 	"github.com/gobuffalo/pop/v5"
 
+	"github.com/ory/kratos/continuity"
 	"github.com/ory/kratos/courier"
 	"github.com/ory/kratos/identity"
 	"github.com/ory/kratos/selfservice/errorx"
@@ -21,6 +22,7 @@ type Provider interface {
 }
 
 type Persister interface {
+	continuity.Persister
 	identity.PrivilegedPool
 	registration.RequestPersister
 	login.RequestPersister

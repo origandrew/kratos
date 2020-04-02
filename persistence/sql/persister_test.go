@@ -14,6 +14,7 @@ import (
 
 	"github.com/ory/x/sqlcon"
 
+	"github.com/ory/kratos/continuity"
 	"github.com/ory/kratos/persistence/sql"
 	"github.com/ory/kratos/selfservice/errorx"
 	"github.com/ory/kratos/x"
@@ -153,6 +154,10 @@ func TestPersister(t *testing.T) {
 			t.Run("contract=verify.TestPersister", func(t *testing.T) {
 				pop.SetLogger(pl(t))
 				verify.TestPersister(p)(t)
+			})
+			t.Run("contract=continuity.TestPersister", func(t *testing.T) {
+				pop.SetLogger(pl(t))
+				continuity.TestPersister(p)(t)
 			})
 		})
 

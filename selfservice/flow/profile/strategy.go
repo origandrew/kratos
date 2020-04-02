@@ -13,6 +13,7 @@ type Strategy interface {
 	ProfileManagementStrategyID() string
 	RegisterProfileManagementRoutes(*x.RouterPublic)
 	PopulateProfileManagementMethod(*http.Request, *session.Session, *Request) error
+	// CompleteProfileManagementFlow(w http.ResponseWriter, r *http.Request, rid string, ss *session.Session, buf *bytes.Buffer)
 }
 
 type Strategies []Strategy
