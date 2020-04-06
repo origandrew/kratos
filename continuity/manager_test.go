@@ -10,12 +10,13 @@ import (
 	"testing"
 
 	"github.com/julienschmidt/httprouter"
-	"github.com/ory/herodot"
-	"github.com/ory/viper"
-	"github.com/ory/x/logrusx"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/tidwall/gjson"
+
+	"github.com/ory/herodot"
+	"github.com/ory/viper"
+	"github.com/ory/x/logrusx"
 
 	"github.com/ory/kratos/continuity"
 	"github.com/ory/kratos/driver/configuration"

@@ -21,7 +21,7 @@ import (
 	"github.com/ory/kratos/identity"
 	"github.com/ory/kratos/internal"
 	"github.com/ory/kratos/internal/testhelpers"
-	"github.com/ory/kratos/selfservice/flow/profile"
+	"github.com/ory/kratos/selfservice/flow/settings"
 	"github.com/ory/kratos/x"
 )
 
@@ -33,7 +33,7 @@ func TestProfile(t *testing.T) {
 	_, reg := internal.NewRegistryDefault(t)
 	viper.Set(configuration.ViperKeyDefaultIdentityTraitsSchemaURL, "file://./stub/profile.schema.json")
 
-	_ = testhelpers.NewProfileUITestServer(t)
+	_ = testhelpers.NewSettingsUITestServer(t)
 	_ = testhelpers.NewErrorTestServer(t, reg)
 	viper.Set(configuration.ViperKeySelfServicePrivilegedAuthenticationAfter, "1m")
 
@@ -51,7 +51,7 @@ func TestProfile(t *testing.T) {
 		Traits:         identity.Traits(`{}`),
 		TraitsSchemaID: configuration.DefaultIdentityTraitsSchemaID,
 	}
-	publicTS, _ := testhelpers.NewProfileAPIServer(t, reg, []identity.Identity{*primaryIdentity, *secondaryIdentity})
+	publicTS, _ := testhelpers.NewSettingsAPIServer(t, reg, []identity.Identity{*primaryIdentity, *secondaryIdentity})
 	primaryUser := testhelpers.NewSessionClient(t, publicTS.URL+"/sessions/set/0")
 	secondaryUser := testhelpers.NewSessionClient(t, publicTS.URL+"/sessions/set/1")
 
@@ -60,7 +60,7 @@ func TestProfile(t *testing.T) {
 		t.Cleanup(func() {
 			viper.Set(configuration.ViperKeySelfServicePrivilegedAuthenticationAfter, "1m")
 		})
-		rs := testhelpers.GetProfileManagementRequest(t, primaryUser, publicTS)
+		rs := testhelpers.GetSettingsRequest(t, primaryUser, publicTS)
 
 		form := rs.Payload.Methods[string(identity.CredentialsTypePassword)].Config
 		values := testhelpers.SDKFormFieldsToURLValues(form.Fields)
@@ -77,12 +77,12 @@ func TestProfile(t *testing.T) {
 	})
 
 	t.Run("description=should come back with form errors if the password data is invalid", func(t *testing.T) {
-		rs := testhelpers.GetProfileManagementRequest(t, primaryUser, publicTS)
+		rs := testhelpers.GetSettingsRequest(t, primaryUser, publicTS)
 
 		form := rs.Payload.Methods[string(identity.CredentialsTypePassword)].Config
 		values := testhelpers.SDKFormFieldsToURLValues(form.Fields)
 		values.Set("password", "123456")
-		actual, _ := testhelpers.ProfileSubmitForm(t, form, primaryUser, values)
+		actual, _ := testhelpers.SettingsSubmitForm(t, form, primaryUser, values)
 
 		assert.Equal(t, *form.Action, gjson.Get(actual, "methods.password.config.action").String(), "%s", actual)
 		assert.Empty(t, gjson.Get(actual, "methods.password.config.fields.#(name==password).value").String(), "%s", actual)
@@ -91,12 +91,12 @@ func TestProfile(t *testing.T) {
 	})
 
 	t.Run("description=should update the password if everything is ok", func(t *testing.T) {
-		rs := testhelpers.GetProfileManagementRequest(t, primaryUser, publicTS)
+		rs := testhelpers.GetSettingsRequest(t, primaryUser, publicTS)
 
 		form := rs.Payload.Methods[string(identity.CredentialsTypePassword)].Config
 		values := testhelpers.SDKFormFieldsToURLValues(form.Fields)
 		values.Set("password", uuid.New().String())
-		actual, _ := testhelpers.ProfileSubmitForm(t, form, primaryUser, values)
+		actual, _ := testhelpers.SettingsSubmitForm(t, form, primaryUser, values)
 
 		assert.Equal(t, true, gjson.Get(actual, "update_successful").Bool(), "%s", actual)
 		assert.Empty(t, gjson.Get(actual, "methods.password.fields.#(name==password).value").String(), "%s", actual)
@@ -109,12 +109,12 @@ func TestProfile(t *testing.T) {
 	})
 
 	t.Run("description=should update the password even if no password was set before", func(t *testing.T) {
-		rs := testhelpers.GetProfileManagementRequest(t, secondaryUser, publicTS)
+		rs := testhelpers.GetSettingsRequest(t, secondaryUser, publicTS)
 
 		form := rs.Payload.Methods[string(identity.CredentialsTypePassword)].Config
 		values := testhelpers.SDKFormFieldsToURLValues(form.Fields)
 		values.Set("password", uuid.New().String())
-		actual, _ := testhelpers.ProfileSubmitForm(t, form, secondaryUser, values)
+		actual, _ := testhelpers.SettingsSubmitForm(t, form, secondaryUser, values)
 
 		assert.Equal(t, true, gjson.Get(actual, "update_successful").Bool(), "%s", actual)
 		assert.Empty(t, gjson.Get(actual, "methods.password.fields.#(name==password).value").String(), "%s", actual)
@@ -136,12 +136,12 @@ func TestProfile(t *testing.T) {
 		rts := httptest.NewServer(router)
 		defer rts.Close()
 
-		viper.Set(configuration.ViperKeySelfServiceProfileManagementAfterConfig+"."+profile.StrategyTraitsID, testhelpers.HookConfigRedirectTo(t, rts.URL+"/return-ts"))
+		viper.Set(configuration.ViperKeySelfServiceSettingsAfterConfig+"."+settings.StrategyTraitsID, testhelpers.HookConfigRedirectTo(t, rts.URL+"/return-ts"))
 		t.Cleanup(func() {
 			viper.Set(configuration.ViperKeySelfServiceLoginAfterConfig+"."+string(identity.CredentialsTypePassword), nil)
 		})
 
-		rs := testhelpers.GetProfileManagementRequest(t, primaryUser, publicTS)
+		rs := testhelpers.GetSettingsRequest(t, primaryUser, publicTS)
 
 		form := rs.Payload.Methods[string(identity.CredentialsTypePassword)].Config
 		values := testhelpers.SDKFormFieldsToURLValues(form.Fields)

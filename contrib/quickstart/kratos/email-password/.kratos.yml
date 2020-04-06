@@ -3,7 +3,7 @@ selfservice:
     password:
       enabled: true
 
-  profile:
+  settings:
     privileged_session_max_age: 15h
     after:
       profile:
@@ -60,7 +60,7 @@ urls:
   login_ui: http://127.0.0.1:4455/auth/login
   registration_ui: http://127.0.0.1:4455/auth/registration
   error_ui: http://127.0.0.1:4455/error
-  profile_ui: http://127.0.0.1:4455/profile
+  settings_ui: http://127.0.0.1:4455/settings
   verify_ui: http://127.0.0.1:4455/verify
 
   # These are undefined because not available in this demo

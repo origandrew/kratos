@@ -4,9 +4,10 @@ import (
 	"time"
 
 	"github.com/gofrs/uuid"
+	"github.com/pkg/errors"
+
 	"github.com/ory/herodot"
 	"github.com/ory/x/sqlxx"
-	"github.com/pkg/errors"
 
 	"github.com/ory/kratos/x"
 )
@@ -20,7 +21,7 @@ type Container struct {
 	ExpiresAt time.Time `json:"expires_at" db:"expires_at"`
 
 	// Payload is the container's payload.
-	Payload sqlxx.JSONRawMessage `json:"payload" db:"payload"`
+	Payload sqlxx.NullJSONRawMessage `json:"payload" db:"payload"`
 
 	// CreatedAt is a helper struct field for gobuffalo.pop.
 	CreatedAt time.Time `json:"-" db:"created_at"`
@@ -46,7 +47,7 @@ func NewContainer(name string, o managerOptions) *Container {
 		Name:       name,
 		IdentityID: x.PointToUUID(o.iid),
 		ExpiresAt:  time.Now().Add(o.ttl).UTC().Truncate(time.Second),
-		Payload:    sqlxx.JSONRawMessage(o.payload),
+		Payload:    sqlxx.NullJSONRawMessage(o.payload),
 	}
 }
 

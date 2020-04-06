@@ -121,7 +121,7 @@
         "schema_url"
       ]
     },
-    "selfServiceAfterProfileHooks": {
+    "selfServiceAfterSettingsHooks": {
       "type": "array",
       "items": {
         "anyOf": [
@@ -166,14 +166,14 @@
       },
       "uniqueItems": true
     },
-    "selfServiceAfterProfile": {
+    "selfServiceAfterSettings": {
       "type": "object",
       "properties": {
         "password": {
-          "$ref": "#/definitions/selfServiceAfterProfileHooks"
+          "$ref": "#/definitions/selfServiceAfterSettingsHooks"
         },
         "profile": {
-          "$ref": "#/definitions/selfServiceAfterProfileHooks"
+          "$ref": "#/definitions/selfServiceAfterSettingsHooks"
         }
       },
       "additionalItems": false
@@ -276,7 +276,7 @@
             "redirect_to"
           ]
         },
-        "profile": {
+        "settings": {
           "type": "object",
           "additionalItems": false,
           "properties": {
@@ -291,7 +291,7 @@
               "default": "1h"
             },
             "after": {
-              "$ref": "#/definitions/selfServiceAfterProfile"
+              "$ref": "#/definitions/selfServiceAfterSettings"
             }
           }
         },
@@ -465,7 +465,7 @@
           "type": "string",
           "format": "uri"
         },
-        "profile_ui": {
+        "settings_ui": {
           "type": "string",
           "format": "uri"
         },
@@ -497,7 +497,7 @@
         }
       },
       "required": [
-        "profile_ui",
+        "settings_ui",
         "mfa_ui",
         "login_ui",
         "registration_ui",

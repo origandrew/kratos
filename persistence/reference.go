@@ -11,8 +11,8 @@ import (
 	"github.com/ory/kratos/identity"
 	"github.com/ory/kratos/selfservice/errorx"
 	"github.com/ory/kratos/selfservice/flow/login"
-	"github.com/ory/kratos/selfservice/flow/profile"
 	"github.com/ory/kratos/selfservice/flow/registration"
+	"github.com/ory/kratos/selfservice/flow/settings"
 	"github.com/ory/kratos/selfservice/flow/verify"
 	"github.com/ory/kratos/session"
 )
@@ -26,7 +26,7 @@ type Persister interface {
 	identity.PrivilegedPool
 	registration.RequestPersister
 	login.RequestPersister
-	profile.RequestPersister
+	settings.RequestPersister
 	courier.Persister
 	session.Persister
 	errorx.Persister

@@ -7,9 +7,10 @@ import (
 	"net/http"
 
 	"github.com/gofrs/uuid"
+	"github.com/pkg/errors"
+
 	"github.com/ory/herodot"
 	"github.com/ory/x/sqlcon"
-	"github.com/pkg/errors"
 
 	"github.com/ory/kratos/session"
 	"github.com/ory/kratos/x"
@@ -83,7 +84,7 @@ func (m ManagerCookie) Continue(ctx context.Context, r *http.Request, name strin
 		return nil, err
 	}
 
-	if o.payloadRaw != nil && container.Payload != nil{
+	if o.payloadRaw != nil && container.Payload != nil {
 		if err := json.NewDecoder(bytes.NewBuffer(container.Payload)).Decode(o.payloadRaw); err != nil {
 			return nil, errors.WithStack(err)
 		}

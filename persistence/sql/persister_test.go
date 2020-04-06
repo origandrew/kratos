@@ -32,8 +32,8 @@ import (
 	"github.com/ory/kratos/identity"
 	"github.com/ory/kratos/internal"
 	"github.com/ory/kratos/selfservice/flow/login"
-	"github.com/ory/kratos/selfservice/flow/profile"
 	"github.com/ory/kratos/selfservice/flow/registration"
+	"github.com/ory/kratos/selfservice/flow/settings"
 	"github.com/ory/kratos/selfservice/flow/verify"
 	"github.com/ory/kratos/session"
 )
@@ -139,9 +139,9 @@ func TestPersister(t *testing.T) {
 				pop.SetLogger(pl(t))
 				login.TestRequestPersister(p)(t)
 			})
-			t.Run("contract=profile.TestRequestPersister", func(t *testing.T) {
+			t.Run("contract=settings.TestRequestPersister", func(t *testing.T) {
 				pop.SetLogger(pl(t))
-				profile.TestRequestPersister(p)(t)
+				settings.TestRequestPersister(p)(t)
 			})
 			t.Run("contract=session.TestRequestPersister", func(t *testing.T) {
 				pop.SetLogger(pl(t))

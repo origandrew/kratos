@@ -1,12 +1,13 @@
-package profile
+package settings
 
 import (
 	"fmt"
 	"net/http"
 	"net/url"
 
-	"github.com/ory/x/sqlxx"
 	"github.com/pkg/errors"
+
+	"github.com/ory/x/sqlxx"
 
 	"github.com/ory/herodot"
 	"github.com/ory/x/urlx"
@@ -18,8 +19,8 @@ import (
 
 var (
 	ErrRequestExpired = herodot.ErrBadRequest.
-		WithError("profile management request expired").
-		WithReasonf(`The profile management request has expired. Please restart the flow.`)
+				WithError("settings request expired").
+				WithReasonf(`The settings request has expired. Please restart the flow.`)
 	ErrHookAbortRequest             = errors.New("abort hook")
 	ErrRequestNeedsReAuthentication = herodot.ErrForbidden.WithReasonf("The login session is too old and thus not allowed to update these fields. Please re-authenticate.")
 )
@@ -33,7 +34,7 @@ type (
 		RequestPersistenceProvider
 	}
 
-	ErrorHandlerProvider interface{ ProfileRequestRequestErrorHandler() *ErrorHandler }
+	ErrorHandlerProvider interface{ SettingsRequestErrorHandler() *ErrorHandler }
 
 	ErrorHandler struct {
 		d errorHandlerDependencies
@@ -47,6 +48,7 @@ func NewErrorHandler(d errorHandlerDependencies, c configuration.Provider) *Erro
 		c: c,
 	}
 }
+
 //
 // func (s *ErrorHandler) reauthenticate(
 // 	w http.ResponseWriter,
@@ -55,14 +57,14 @@ func NewErrorHandler(d errorHandlerDependencies, c configuration.Provider) *Erro
 // 	err error,
 // 	method string) {
 //
-// 	if err := s.d.ProfileRequestPersister().UpdateProfileRequest(r.Context(), rr); err != nil {
+// 	if err := s.d.SettingsRequestPersister().UpdateSettingsRequest(r.Context(), rr); err != nil {
 // 		s.d.SelfServiceErrorManager().Forward(r.Context(), w, r, err)
 // 		return
 // 	}
 //
 // }
 
-func (s *ErrorHandler) HandleProfileManagementError(
+func (s *ErrorHandler) HandleSettingsError(
 	w http.ResponseWriter,
 	r *http.Request,
 	rr *Request,
@@ -71,8 +73,8 @@ func (s *ErrorHandler) HandleProfileManagementError(
 ) {
 	s.d.Logger().WithError(err).
 		WithField("details", fmt.Sprintf("%+v", err)).
-		WithField("profile_request", rr).
-		Warn("Encountered profile management error.")
+		WithField("settings_request", rr).
+		Warn("Encountered settings error.")
 
 	if rr == nil {
 		s.d.SelfServiceErrorManager().Forward(r.Context(), w, r, err)
@@ -83,7 +85,7 @@ func (s *ErrorHandler) HandleProfileManagementError(
 	}
 
 	if _, ok := rr.Methods[method]; !ok {
-		s.d.SelfServiceErrorManager().Forward(r.Context(), w, r, errors.WithStack(herodot.ErrInternalServerError.WithReasonf("Expected profile management method %s to exist.", method)))
+		s.d.SelfServiceErrorManager().Forward(r.Context(), w, r, errors.WithStack(herodot.ErrInternalServerError.WithReasonf("Expected settings method %s to exist.", method)))
 		return
 	}
 
@@ -98,13 +100,13 @@ func (s *ErrorHandler) HandleProfileManagementError(
 		return
 	}
 
-	if err := s.d.ProfileRequestPersister().UpdateProfileRequest(r.Context(), rr); err != nil {
+	if err := s.d.SettingsRequestPersister().UpdateSettingsRequest(r.Context(), rr); err != nil {
 		s.d.SelfServiceErrorManager().Forward(r.Context(), w, r, err)
 		return
 	}
 
 	http.Redirect(w, r,
-		urlx.CopyWithQuery(s.c.ProfileURL(), url.Values{"request": {rr.ID.String()}}).String(),
+		urlx.CopyWithQuery(s.c.SettingsURL(), url.Values{"request": {rr.ID.String()}}).String(),
 		http.StatusFound,
 	)
 }
